@@ -5,6 +5,11 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 /* ============================
+ * Render / Prod Settings
+ * ============================ */
+app.set("trust proxy", 1);
+
+/* ============================
  * Middleware
  * ============================ */
 app.use(express.json());
@@ -14,8 +19,16 @@ app.use(express.json());
  * ============================ */
 app.use("/search", apiControlRouter);
 
+/**
+ * Health check (USED BY RENDER)
+ */
 app.get("/health", (req, res) => {
-    res.json({ status: "ok", uptime: process.uptime() });
+    res.status(200).json({
+        status: "ok",
+        uptime: process.uptime(),
+        memory: process.memoryUsage().rss,
+        time: new Date().toISOString(),
+    });
 });
 
 /* ============================
@@ -31,6 +44,22 @@ app.use((err, req, res, next) => {
 /* ============================
  * Start Server
  * ============================ */
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
     console.log(`🚆 Quickets IRCTC API running on port ${PORT}`);
+});
+
+/* ============================
+ * Graceful Shutdown (Render)
+ * ============================ */
+process.on("SIGTERM", () => {
+    console.log("🛑 SIGTERM received. Shutting down gracefully...");
+    server.close(() => {
+        console.log("✅ Server closed.");
+        process.exit(0);
+    });
+});
+
+process.on("SIGINT", () => {
+    console.log("🛑 SIGINT received. Shutting down...");
+    process.exit(0);
 });

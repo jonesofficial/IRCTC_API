@@ -1,5 +1,5 @@
 const express = require("express");
-const railwayRouter = require("./routes/railway");
+const apiControlRouter = require("./routes/apiControl");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -12,7 +12,7 @@ app.use(express.json());
 /* ============================
  * Routes
  * ============================ */
-app.use("/search", railwayRouter);
+app.use("/search", apiControlRouter);
 
 app.get("/health", (req, res) => {
     res.json({ status: "ok", uptime: process.uptime() });
